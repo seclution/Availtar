@@ -1529,24 +1529,22 @@ public class MonthWeekEventsView extends SimpleWeekView {
                             Style.STROKE : Style.FILL_AND_STROKE;
         }
         protected int getRectangleColor() {
-            return isDeclined() ? Utils.getDeclinedColorFromColor(mEvent.color) : mEvent.color;
+            if (isDeclined()) {
+                return Utils.getDeclinedColorFromColor(mEvent.color);
+            }
+            // Override calendar colors with availability-based colors
+            if (mEvent.isFree()) {
+                return getContext().getResources().getColor(ws.xsoh.etar.R.color.free_event_color);
+            } else {
+                return getContext().getResources().getColor(ws.xsoh.etar.R.color.busy_event_color);
+            }
         }
 
         protected void drawEventRectangle(Canvas canvas, int day)  {
             mBoundaries.setRectangle(mFormat.getDaySpan(day), mFormat.getEventLines());
             mEventSquarePaint.setStyle(getRectanglePaintStyle());
             mEventSquarePaint.setColor(getRectangleColor());
-            
-            // Make free events more transparent
-            int originalAlpha = mEventSquarePaint.getAlpha();
-            if (mEvent.isFree()) {
-                mEventSquarePaint.setAlpha((int) (originalAlpha * 0.4f)); // 40% opacity for free events
-            }
-            
             canvas.drawRect(r, mEventSquarePaint);
-            
-            // Restore original alpha
-            mEventSquarePaint.setAlpha(originalAlpha);
         }
 
         protected int getAvailableSpaceForText(int spanningDays) {

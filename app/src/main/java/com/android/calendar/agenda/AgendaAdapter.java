@@ -173,24 +173,16 @@ public class AgendaAdapter extends ResourceCursorAdapter {
         holder.instanceId = cursor.getLong(AgendaWindowAdapter.INDEX_INSTANCE_ID);
         holder.eventId = cursor.getLong(AgendaWindowAdapter.INDEX_EVENT_ID);
 
-        /* Calendar Color */
-        int color = Utils.getDisplayColorFromColor(context, cursor.getInt(AgendaWindowAdapter.INDEX_COLOR));
-        
-        // Handle availability for visual distinction and toggle
+        // Handle availability for color and toggle
         int availability = cursor.getInt(AgendaWindowAdapter.INDEX_AVAILABILITY);
         boolean isFree = (availability == Events.AVAILABILITY_FREE);
         
-        // Apply visual distinction for free events (transparency)
+        // Override calendar colors with availability-based colors
+        int color;
         if (isFree) {
-            holder.colorChip.setAlpha(0.4f);
-            holder.title.setAlpha(0.7f);
-            holder.when.setAlpha(0.7f);
-            holder.where.setAlpha(0.7f);
+            color = context.getResources().getColor(ws.xsoh.etar.R.color.free_event_color);
         } else {
-            holder.colorChip.setAlpha(1.0f);
-            holder.title.setAlpha(1.0f);
-            holder.when.setAlpha(1.0f);
-            holder.where.setAlpha(1.0f);
+            color = context.getResources().getColor(ws.xsoh.etar.R.color.busy_event_color);
         }
         
         holder.colorChip.setColor(color);
@@ -209,18 +201,14 @@ public class AgendaAdapter extends ResourceCursorAdapter {
                 // Update status text immediately
                 finalHolder.availabilityStatus.setText(isChecked ? "FREE" : "BUSY");
                 
-                // Update visual distinction immediately
+                // Update color immediately
+                int newColor;
                 if (isChecked) {
-                    finalHolder.colorChip.setAlpha(0.4f);
-                    finalHolder.title.setAlpha(0.7f);
-                    finalHolder.when.setAlpha(0.7f);
-                    finalHolder.where.setAlpha(0.7f);
+                    newColor = finalContext.getResources().getColor(ws.xsoh.etar.R.color.free_event_color);
                 } else {
-                    finalHolder.colorChip.setAlpha(1.0f);
-                    finalHolder.title.setAlpha(1.0f);
-                    finalHolder.when.setAlpha(1.0f);
-                    finalHolder.where.setAlpha(1.0f);
+                    newColor = finalContext.getResources().getColor(ws.xsoh.etar.R.color.busy_event_color);
                 }
+                finalHolder.colorChip.setColor(newColor);
             }
         });
 
