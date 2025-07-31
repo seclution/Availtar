@@ -1071,7 +1071,12 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
             case ViewType.WEEK:
             default:
                 mNavigationView.getMenu().findItem(R.id.week_menu_item).setChecked(true);
-                frag = new DayFragment(timeMillis, 5);
+                // Calculate Monday of the current week
+                Calendar cal = Calendar.getInstance();
+                cal.setTimeInMillis(timeMillis);
+                cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                long mondayMillis = cal.getTimeInMillis();
+                frag = new DayFragment(mondayMillis, 5);
                 if (mIsTabletConfig) {
                     mToolbar.setTitle(R.string.week_view);
                 }

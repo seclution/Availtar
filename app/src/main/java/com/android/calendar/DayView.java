@@ -1003,7 +1003,18 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
     }
 
     public void setSelected(Time time, boolean ignoreTime, boolean animateToday) {
-        mBaseDate.set(time);
+        // For 5-day week view, always align to Monday
+        if (mNumDays == 5) {
+            Time mondayTime = new Time();
+            mondayTime.set(time);
+            int dayOfWeek = mondayTime.getWeekDay();
+            int daysToSubtract = (dayOfWeek == 0) ? 6 : dayOfWeek - 1; // Sunday=0, Monday=1
+            mondayTime.setDay(mondayTime.getDay() - daysToSubtract);
+            mondayTime.normalize();
+            mBaseDate.set(mondayTime);
+        } else {
+            mBaseDate.set(time);
+        }
         setSelectedHour(mBaseDate.getHour());
         setSelectedEvent(null);
         mPrevSelectedEvent = null;
@@ -2639,7 +2650,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         final float deltaY = mCellHeight + HOUR_GAP;
         int linesIndex = 0;
         final float startY = 0;
-        final float stopY = HOUR_GAP + (getMaxHour() - getMinHour()) * (mCellHeight + HOUR_GAP);
+        final float stopY = HOUR_GAP + 24 * (mCellHeight + HOUR_GAP);
         float x = mHoursWidth;
 
         // Draw the inner horizontal grid lines
@@ -2648,7 +2659,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         p.setAntiAlias(false);
         y = 0;
         linesIndex = 0;
-        for (int hour = getMinHour(); hour <= getMaxHour(); hour++) {
+        for (int hour = 0; hour <= 24; hour++) {
             mLines[linesIndex++] = GRID_LINE_LEFT_MARGIN;
             mLines[linesIndex++] = y;
             mLines[linesIndex++] = stopX;
@@ -3501,7 +3512,12 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         if (event == mClickedEvent) {
                 color = mClickedColor;
         } else {
-            color = event.color;
+            // Override calendar colors with availability-based colors
+            if (event.isFree()) {
+                color = mContext.getResources().getColor(ws.xsoh.etar.R.color.free_event_color);
+            } else {
+                color = mContext.getResources().getColor(ws.xsoh.etar.R.color.busy_event_color);
+            }
         }
 
         switch (event.selfAttendeeStatus) {
@@ -3533,17 +3549,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         r.right -= ceilHalfStroke;
         p.setStrokeWidth(EVENT_RECT_STROKE_WIDTH);
         p.setColor(color);
-        int alpha = p.getAlpha();
-        
-        // Make free events more transparent
-        int eventAlpha = mEventsAlpha;
-        if (event.isFree()) {
-            eventAlpha = (int) (mEventsAlpha * 0.4f); // 40% opacity for free events
-        }
-        
-        p.setAlpha(eventAlpha);
         canvas.drawRect(r, p);
-        p.setAlpha(alpha);
         p.setStyle(Style.FILL);
 
         // If this event is selected, then use the selection color
